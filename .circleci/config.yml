@@ -68,9 +68,6 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
-          name: login docker
-          command: docker login -u "namnn10" --password-stdin "dckr_pat_vBM5mNHA4SE5rS5R8E9GJnlLvhs"
-      - run:
           name: Build docker image
           command: |
             scripts/build_image.sh latest

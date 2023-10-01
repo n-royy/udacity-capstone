@@ -7,4 +7,4 @@ then
     TAG="latest"
 fi
 pwd
-docker build -f docker/Dockerfile . -t n-royy/udacity-capstone:$TAG
+docker build -f docker/Dockerfile . -t namnn10/udacity-capstone:$TAG

@@ -7,4 +7,4 @@ then
     TAG="latest"
 fi
 
-docker run -p "8000:80" n-royy/udacity-capstone:$TAG
+docker run -p "8000:80" namnn10/udacity-capstone:$TAG
