@@ -9,7 +9,7 @@ jobs:
       - restore_cache:
           keys: [app-build]
       - run:
-          name: Build an app
+          name: Build app
           command: |
             cd app
             npm install
@@ -26,7 +26,7 @@ jobs:
       - restore_cache:
           keys: [app-build]
       - run:
-          name: Test an app
+          name: Test app
           command: |
             cd app
             npm install
@@ -40,7 +40,7 @@ jobs:
       - restore_cache:
           keys: [app-build]
       - run:
-          name: Scan an app
+          name: Scan app
           command: |
             cd app
             npm install
@@ -54,7 +54,7 @@ jobs:
       - restore_cache:
           keys: [app-build]
       - run:
-          name: Scan app
+          name: Check lint app
           command: |
             cd app
             npm install

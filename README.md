@@ -1,5 +1,9 @@
 # Udacity - Cloud DevOps Engineer - Capstone
 
-## App reference
+## Project Document
 
-I created a source for an app that was linked to https://github.com/jenkins-docs/simple-node-js-react-npm-app
+- <a href="WORKFLOW_OF_PROJECT.md">Project Document</a>
+
+## Reference
+
+I created a source for this app that was linked to https://github.com/Yvad60/blog-code-references/tree/setup-jest-and-react-testing-library
