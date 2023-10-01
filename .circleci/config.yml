@@ -60,6 +60,24 @@ jobs:
             npm install
             npm run lint
 
+  build-push-app-image:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build docker image
+          command: |
+            scripts/build_image.sh latest 
+            scripts/build_image.sh ${CIRCLE_SHA1:0:7}
+      - run:
+          name: Push docker image
+          command: |
+            scripts/push_image.sh latest 
+            scripts/push_image.sh ${CIRCLE_SHA1:0:7}
+
 workflows:
   default:
     jobs:
@@ -71,3 +89,5 @@ workflows:
           requires: [build-app]
       - check-lint-app:
           requires: [build-app]
+      - build-push-app-image:
+          requires: [test-app, scan-app, check-lint-app]
