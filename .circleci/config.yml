@@ -68,6 +68,9 @@ jobs:
       - setup_remote_docker:
           docker_layer_caching: true
       - run:
+          name: login docker
+          command: docker login --username $DOCKER_USERNAME --password $DOCKER_PASSWORD
+      - run:
           name: Build docker image
           command: |
             scripts/build_image.sh latest
