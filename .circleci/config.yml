@@ -137,7 +137,7 @@ jobs:
       - run:
           name: add eks cluster
           command: |
-            aws eks update-kubeconfig --region us-east-1 --name capstone-cluster-stack
+            aws eks update-kubeconfig --region us-east-1 --name capstone-cluster
             kubectl config get-contexts
             kubectl get all
             kubectl describe deployment uda-app-deployment
