@@ -73,13 +73,13 @@ jobs:
       - run:
           name: Build docker image
           command: |
-            chmod +x scripts/build-image.sh
-            chmod +x scripts/build-image.sh ${CIRCLE_SHA1:0:7}
+            docker build -f docker/Dockerfile . -t namnn10/udacity-capstone:lastest
+            docker build -f docker/Dockerfile . -t namnn10/udacity-capstone:${CIRCLE_SHA1:0:7}
       - run:
           name: Push docker image
           command: |
-            chmod +x scripts/push-image.sh
-            chmod +x scripts/push-image.sh ${CIRCLE_SHA1:0:7}
+            docker push namnn10/udacity-capstone:lastest
+            docker push namnn10/udacity-capstone:${CIRCLE_SHA1:0:7}
 
 workflows:
   default:
