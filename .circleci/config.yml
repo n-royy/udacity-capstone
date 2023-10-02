@@ -1,5 +1,50 @@
 version: 2.1
 
+commands:
+  kubectl-setup:
+    description: Install kubectl for environment still not have kubectl
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt update
+            curl -O https://s3.us-west-2.amazonaws.com/amazon-eks/1.23.17/2023-05-11/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mkdir -p $HOME/bin && cp ./kubectl $HOME/bin/kubectl && export PATH=$HOME/bin:$PATH
+            kubectl version --short --client
+
+  awscli-setup:
+    description: Install awscli for environment still not have awscli
+    steps:
+      - run:
+          name: Install dependencies
+          command: |
+            sudo apt update
+            sudo apt install awscli -y
+            aws configure set aws_access_key_id $AWS_ACCESS_KEY
+            aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY
+            aws configure set region eu-east-1
+            aws --version
+
+  eksctl-setup:
+    steps:
+      - run:
+          name: install eksctl
+          command: |
+            # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
+            ARCH=amd64
+            PLATFORM=$(uname -s)_$ARCH
+
+            curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+
+            # (Optional) Verify checksum
+            curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+
+            tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+
+            sudo mv /tmp/eksctl /usr/local/bin
+            eksctl version
+
 jobs:
   build-app:
     docker:
@@ -81,6 +126,52 @@ jobs:
             docker push namnn10/udacity-capstone:lastest
             docker push namnn10/udacity-capstone:${CIRCLE_SHA1:0:7}
 
+  deploy-app:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - awscli-setup
+      - kubectl-setup
+      - eksctl-setup
+      - run:
+          name: add eks cluster
+          command: |
+            aws eks update-kubeconfig --region us-east-1 --name capstone-cluster-stack
+            kubectl config get-contexts
+            kubectl get all
+            kubectl describe deployment uda-app-deployment
+      - run:
+          name: deploy app
+          command: |
+            kubectl set image deployment/uda-app-deployment uda-app=namnn10/udacity-capstone:${CIRCLE_SHA1:0:7}
+            kubectl rollout status deployment uda-app-deployment
+      - run:
+          name: smoke test
+          command: |
+            kubectl port-forward service/uda-app-service 8080:80  > uda-app-forward-port.log 2>&1 &
+            echo "Forwarding port to 8080 for run smoke test, wait 30 seconds for port forward"
+            sleep 30
+            kubectl port-forward service/uda-app-service 8080:80 > uda-app-forward-port.log 2>&1 &
+            sleep 10
+            http_code=$(curl -LI 127.0.0.1:8080 -o /dev/null -w '%{http_code}\n' -s)
+            echo $http_code
+            if [[ ${http_code} -eq 200  ]]; then
+              echo "Smoke test passed"
+              cat uda-app-forward-port.log
+              exit 0
+            else 
+              echo "Smoke test failed"
+              cat uda-app-forward-port.log
+              exit 1
+            fi
+            cat uda-app-forward-port.log
+      - run:
+          name: revert
+          command: |
+            kubectl rollout undo deployment uda-app-deployment
+          when: on_fail
+
 workflows:
   default:
     jobs:
@@ -94,3 +185,5 @@ workflows:
           requires: [build-app]
       - build-push-app-image:
           requires: [test-app, scan-app, check-lint-app]
+      - deploy-app:
+          requires: [build-push-app-image]
