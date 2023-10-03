@@ -26,25 +26,6 @@ commands:
             aws configure set region us-east-1
             aws --version
 
-  eksctl-setup:
-    steps:
-      - run:
-          name: install eksctl
-          command: |
-            # for ARM systems, set ARCH to: `arm64`, `armv6` or `armv7`
-            ARCH=amd64
-            PLATFORM=$(uname -s)_$ARCH
-
-            curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
-
-            # (Optional) Verify checksum
-            curl -sL "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
-
-            tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
-
-            sudo mv /tmp/eksctl /usr/local/bin
-            eksctl version
-
 jobs:
   build-app:
     docker:
@@ -119,12 +100,10 @@ jobs:
           name: Build docker image
           command: |
             docker build -f docker/Dockerfile . -t namnn10/udacity-capstone:lastest
-            docker build -f docker/Dockerfile . -t namnn10/udacity-capstone:${CIRCLE_SHA1:0:7}
       - run:
           name: Push docker image
           command: |
             docker push namnn10/udacity-capstone:lastest
-            docker push namnn10/udacity-capstone:${CIRCLE_SHA1:0:7}
 
   deploy-app:
     docker:
@@ -133,19 +112,20 @@ jobs:
       - checkout
       - awscli-setup
       - kubectl-setup
-      - eksctl-setup
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
-          name: add eks cluster
+          name: display information of the cluster
           command: |
-            aws eks update-kubeconfig --region us-east-1 --name capstone-cluster
-            kubectl config get-contexts
-            kubectl get all
-            kubectl describe deployment uda-app-deployment
+            aws eks update-kubeconfig --name capstone-cluster
+            kubectl cluster-info
+            kubectl get all -n kube-system
       - run:
           name: deploy app
           command: |
-            kubectl set image deployment/uda-app-deployment uda-app=namnn10/udacity-capstone:${CIRCLE_SHA1:0:7}
-            kubectl rollout status deployment uda-app-deployment
+            kubectl apply -f ./kubernetes/aws-auth-cm.yml
+            kubectl apply -f ./kubernetes/deployment.yml      
+            kubectl get all
       - run:
           name: smoke test
           command: |
@@ -166,11 +146,6 @@ jobs:
               exit 1
             fi
             cat uda-app-forward-port.log
-      - run:
-          name: revert
-          command: |
-            kubectl rollout undo deployment uda-app-deployment
-          when: on_fail
 
 workflows:
   default:
