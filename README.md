@@ -1,4 +1,10 @@
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/n-royy/udacity-capstone/tree/master.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/n-royy/udacity-capstone/tree/master)
+
 # Udacity - Cloud DevOps Engineer - Capstone
+
+## GitHub repository
+
+[Github](https://github.com/n-royy/udacity-capstone)
 
 ## Proposal
 
