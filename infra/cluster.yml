@@ -3,7 +3,7 @@ Description: Udacity Capstone Cluster
 
 Parameters:
   ClusterName:
-    Description: Udacity Capstone Name
+    Description: Capstone Cluster Name
     Type: String
 
 Resources:

@@ -1,6 +1,6 @@
 ACTION=$1
 
-STACK_NAME=uda-capstone-cluster-stack
+STACK_NAME=capstone-cluster-stack
 
 if [[ $ACTION == "update" ]]
 then
